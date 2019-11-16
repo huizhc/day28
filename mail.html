@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+    * {
+        padding: 0;
+        margin: 0;
+    }
+    ul {
+        list-style-type: none;
+    }
+    li {
+        cursor: pointer;
+    }
+    #email-sug-wrapper {
+        width: 200px;
+        height: 500px;
+    }
+    #email-sug-wrapper li:hover {
+        color: white;
+        background: #344b23;
+    }
+
+    #email-sug-wrapper li.active {
+        color: orange;
+        background: #344b23;
+    }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <input id="email-input" type="text">
+        <ul id="email-sug-wrapper" class="email-sug"></ul>
+    </div>
+    <script>
+        // 增加一个变量，用于存储当前选中的提示Li的序号
+        var nowSelectTipIndex = 0;
+        var postfixList = ['163.com', 'gmail.com', '126.com', 'qq.com', '263.net'];
+        let email = document.querySelector("#email-input");
+        let email_sug = document.querySelector("#email-sug-wrapper");
+
+        //隐藏提示框
+        function clearTip () {
+            while (email_sug.children.length) {
+                email_sug.removeChild(email_sug.firstChild);
+            }
+        }
+        //生成提示内容
+        function showTip (str) {
+            let tempList = [...postfixList];
+            let html = '';
+            str = HTMLEncode(str);
+            for (let i = 0; i < tempList.length; i ++) {
+                //截取str中@之后的字符
+                if (str.indexOf('@') != -1) {
+                    let strSplit = str.split('@');
+                    let strPrev = strSplit[0];
+                    let strNext = strSplit[1];
+                    let n = new RegExp('\^' + strNext).test(tempList[i]);
+                    if (n) {
+                        html += '<li>' + strPrev + '@' + tempList[i] + '</li>';
+                    }
+                } else {
+                    html += '<li>' + str + '@' + tempList[i] + '</li>';
+                }
+            }
+            //为第一个li添加.active
+            // html = html.replace(/(>)/, ' class= "active"$1'); //dom方法
+            email_sug.insertAdjacentHTML('afterbegin', html);
+            email_sug.getElementsByTagName('li')[nowSelectTipIndex].classList.add('active');
+        }
+        //去两端空格
+        function rmTrim (str) {
+            return str.replace(/(^\s*)|(\s*$)/g, '');
+        }
+        // 获取用户输入
+        function userInput (e) {
+            clearTip();
+            let val = rmTrim(e.target.value);
+            if (val === '') return;
+            showTip(val);
+        }
+        function resetSec () {
+            nowSelectTipIndex = 0;
+        }
+        //键盘选择器
+        function upDown (e) {
+            let items = email_sug.getElementsByTagName('li');
+            let length = items.length;
+            if (e.which === 38) {
+                if (nowSelectTipIndex == 0) {
+                    nowSelectTipIndex = length - 1;
+                } else {
+                    nowSelectTipIndex --;
+                }
+            }
+            if (e.which === 40) {
+                if (nowSelectTipIndex == length - 1) {
+                    nowSelectTipIndex = 0;
+                } else {
+                    nowSelectTipIndex ++;
+                }
+            }
+            if (e.which === 13) {
+                liac.click();
+            }
+            for (let i = 0; i < length; i ++) {
+                items[i].classList.remove('active');
+            }
+            items[nowSelectTipIndex].classList.add('active');
+        }
+        //事件监听
+        //页面加载完成自动添加焦点
+        window.addEventListener('load', function () {
+            email.focus();
+        })
+        email.addEventListener('focus', function (e) {
+            userInput(e);
+        })
+        email.addEventListener('blur', function (e) {
+            clearTip();
+        })
+        email.addEventListener('keydown', function (e) {
+            // 如果用户敲下up、dowm、enter键的话转入键盘逻辑
+            if (e.which == 38 || e.which == 40 || e.which == 13) {
+                upDown(e);
+                return;
+            }
+            //按esc全选
+            if (e.which == 27) {
+                this.select();
+            }
+            //重置选择状态
+            resetSec();
+            //读取用户输入并控制显示内容
+            userInput(e);
+        })
+        //解决click与blur事件的冲突
+        email_sug.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+        })
+        //点击li填input
+        email_sug.addEventListener('click', function (e) {
+            let targetName = e.target.tagName;
+            if (targetName === 'LI') {
+                let val = HTMLDecode(e.target.textContent);
+                email.value = val;
+                clearTip();
+            }
+        })
+        //解码
+        function HTMLDecode (text) {
+            let div = document.createElement('div');
+            div.innerHTML = text;
+            let output = div.textContent;
+            div = null
+            return output;
+        }
+        //转码
+        function HTMLEncode (html) {
+            let div = document.createElement('div');
+            div.textContent = html;
+            let output = div.innerHTML;
+            div = null;
+            return output;
+        }
+    </script>
+</body>
+</html>
