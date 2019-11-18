@@ -124,7 +124,7 @@
         email.addEventListener('blur', function (e) {
             clearTip();
         })
-        email.addEventListener('keydown', function (e) {
+        email.addEventListener('keyup', function (e) {
             // 如果用户敲下up、dowm、enter键的话转入键盘逻辑
             if (e.which == 38 || e.which == 40 || e.which == 13) {
                 upDown(e);
